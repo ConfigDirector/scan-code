@@ -4,6 +4,8 @@ All notable changes to the ConfigDirector Code Scan action are documented here. 
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-19
+
 ### Changed
 
 - `version` defaults to `latest`, the newest release of `@configdirector/cli`, which is published without `-beta` from 0.11.0. A workflow that sets `version: beta` stays on 0.10.0-beta.1, the last beta; remove the line to keep getting new releases.
