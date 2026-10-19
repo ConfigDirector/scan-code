@@ -4,6 +4,14 @@ All notable changes to the ConfigDirector Code Scan action are documented here. 
 
 ## [Unreleased]
 
+### Changed
+
+- `version` defaults to `latest`, the newest release of `@configdirector/cli`, which is published without `-beta` from 0.11.0. A workflow that sets `version: beta` stays on 0.10.0-beta.1, the last beta; remove the line to keep getting new releases.
+
+### Fixed
+
+- When the repository's `.npmrc` sets `min-release-age`, the action runs the newest CLI release that is old enough. With the `beta` default, the job failed in the step **Find the CLI version to run** until the newest beta was that old.
+
 ## [1.1.0] - 2026-10-19
 
 ### Added

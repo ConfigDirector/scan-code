@@ -12,7 +12,7 @@ inputs:
     required: true
   version:
     description: Version or npm dist-tag of @configdirector/cli to run, 0.9.0-beta.1 or later.
-    default: beta
+    default: latest
   working-directory:
     description: Directory that holds configdirector.json. The scan reads the files under it.
     default: "."
