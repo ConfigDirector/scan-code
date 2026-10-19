@@ -21,7 +21,7 @@ actionlint reads `action.yml` only through the workflows that use it with `uses:
 
 - Inputs and contexts reach a script through the step's `env`, never through `${{ }}` inside `run`, so a value is never read as shell code.
 - The `upload-decision` step checks `upload` and `snippets` and decides whether the run uploads; later steps read its outputs and never re-read those inputs.
-- Each `npx` call names the package as `@configdirector/cli@$CLI_VERSION`, from the `version` input.
+- The `cli-version` step runs the CLI the `version` input names with `--version`, which turns a dist-tag into an exact version; the `npx` calls after it name the package as `@configdirector/cli@$CLI_VERSION` from its output and never re-read the input, so a CLI release during a run cannot give the steps different versions.
 
 ## Tests
 

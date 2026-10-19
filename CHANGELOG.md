@@ -4,6 +4,14 @@ All notable changes to the ConfigDirector Code Scan action are documented here. 
 
 ## [Unreleased]
 
+### Added
+
+- The log shows which version of `@configdirector/cli` the run used, as in `This run uses @configdirector/cli 0.10.0-beta.1.`, in the step **Find the CLI version to run**.
+
+### Fixed
+
+- The check and the upload run the same version of the CLI, even when a new version is published to the `version` input's dist-tag while the action runs.
+
 ## [1.0.0] - 2026-10-18
 
 ### Added

@@ -63,13 +63,25 @@ runs:
         echo "uploads=$uploads" >> "$GITHUB_OUTPUT"
         echo "snippets=$SNIPPETS_INPUT" >> "$GITHUB_OUTPUT"
 
+    - id: cli-version
+      name: Find the CLI version to run
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        VERSION_INPUT: ${{ inputs.version }}
+      run: |
+        exact_version=$(npx --yes "@configdirector/cli@$VERSION_INPUT" --version)
+
+        echo "This run uses @configdirector/cli $exact_version."
+        echo "version=$exact_version" >> "$GITHUB_OUTPUT"
+
     - id: validate
       name: Check the config keys the code reads
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
         CONFIGDIRECTOR_TOKEN: ${{ inputs.token }}
-        CLI_VERSION: ${{ inputs.version }}
+        CLI_VERSION: ${{ steps.cli-version.outputs.version }}
       run: npx --yes "@configdirector/cli@$CLI_VERSION" validate
 
     - name: Upload the scan to ConfigDirector
@@ -78,7 +90,7 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       env:
         CONFIGDIRECTOR_TOKEN: ${{ inputs.token }}
-        CLI_VERSION: ${{ inputs.version }}
+        CLI_VERSION: ${{ steps.cli-version.outputs.version }}
         SNIPPETS: ${{ steps.upload-decision.outputs.snippets }}
         CONTEXT_LINES: ${{ inputs.context-lines }}
       run: |
