@@ -41,8 +41,7 @@ jobs:
             exit 1
           fi
 
-          released_commit=$(gh api "repos/$GH_REPO/git/ref/tags/$VERSION" --jq .object.sha 2>/dev/null || true)
-          if [ -z "$released_commit" ]; then
+          if ! released_commit=$(gh api "repos/$GH_REPO/git/ref/tags/$VERSION" --jq .object.sha 2>/dev/null); then
             gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" --notes "$notes"
             echo "Released $GITHUB_SHA as $VERSION"
           elif [ "$released_commit" = "$GITHUB_SHA" ]; then
