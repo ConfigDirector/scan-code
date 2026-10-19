@@ -4,6 +4,8 @@ All notable changes to the ConfigDirector Code Scan action are documented here. 
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-19
+
 ### Fixed
 
 - The action runs the CLI version you asked for even when the repository's `.npmrc` sets `min-release-age`. Before, the job failed in the step **Find the CLI version to run** until that version was old enough.
