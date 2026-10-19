@@ -21,11 +21,11 @@ actionlint reads `action.yml` only through the workflows that use it with `uses:
 
 - Inputs and contexts reach a script through the step's `env`, never through `${{ }}` inside `run`, so a value is never read as shell code.
 - The `upload-decision` step checks `upload` and `snippets` and decides whether the run uploads; later steps read its outputs and never re-read those inputs.
-- The `cli-version` step runs the CLI the `version` input names with `--version`, which turns a dist-tag into an exact version; the `npx` calls after it name the package as `@configdirector/cli@$CLI_VERSION` from its output and never re-read the input, so a CLI release during a run cannot give the steps different versions.
+- The `cli-version` step runs the CLI the `version` input names with `--version`, which turns a dist-tag into an exact version; the `npx` calls after it name the package as `@configdirector/cli@$CLI_VERSION` from its output and never re-read the input, so a CLI release during a run cannot give the steps different versions. Every `npx` call passes `--min-release-age=0`, so a caller's `.npmrc` that holds back recent npm releases cannot stop the action.
 
 ## Tests
 
-CI runs actionlint and shellcheck, then runs the action with `uses: ./` against the dev API, `https://api.configdirector-dev.com`, on the fixtures in `test/fixtures/`. They link the project `scan-code-ci` in the dev test organization, which holds the boolean config `scan-code-check`, served to server SDKs: `known-key` reads it and must pass, `unknown-key` reads a key no config has and must fail. The job needs the `CONFIGDIRECTOR_DEV_TOKEN` secret, a token with Projects: Read and Configs: Read, and is skipped with a warning without it, so pull requests from forks, which GitHub runs without secrets, stay green. CI never uploads; the upload is checked by hand in a throwaway repository.
+CI runs actionlint and shellcheck, then runs the action with `uses: ./` against the dev API, `https://api.configdirector-dev.com`, on the fixtures in `test/fixtures/`. They link the project `scan-code-ci` in the dev test organization, which holds the boolean config `scan-code-check`, served to server SDKs: `known-key` reads it and must pass, `release-age-gate` is `known-key` with an `.npmrc` that sets `min-release-age` and must pass too, and `unknown-key` reads a key no config has and must fail. The job needs the `CONFIGDIRECTOR_DEV_TOKEN` secret, a token with Projects: Read and Configs: Read, and is skipped with a warning without it, so pull requests from forks, which GitHub runs without secrets, stay green. CI never uploads; the upload is checked by hand in a throwaway repository.
 
 ## Releasing
 

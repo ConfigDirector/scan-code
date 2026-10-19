@@ -70,7 +70,7 @@ runs:
       env:
         VERSION_INPUT: ${{ inputs.version }}
       run: |
-        exact_version=$(npx --yes "@configdirector/cli@$VERSION_INPUT" --version)
+        exact_version=$(npx --yes --min-release-age=0 "@configdirector/cli@$VERSION_INPUT" --version)
 
         echo "This run uses @configdirector/cli $exact_version."
         echo "version=$exact_version" >> "$GITHUB_OUTPUT"
@@ -82,7 +82,7 @@ runs:
       env:
         CONFIGDIRECTOR_TOKEN: ${{ inputs.token }}
         CLI_VERSION: ${{ steps.cli-version.outputs.version }}
-      run: npx --yes "@configdirector/cli@$CLI_VERSION" validate
+      run: npx --yes --min-release-age=0 "@configdirector/cli@$CLI_VERSION" validate
 
     - name: Upload the scan to ConfigDirector
       if: steps.upload-decision.outputs.uploads == 'true' && (success() || steps.validate.outcome == 'failure')
@@ -99,4 +99,4 @@ runs:
           false) snippet_options=(--no-snippets) ;;
         esac
 
-        npx --yes "@configdirector/cli@$CLI_VERSION" scan --upload "${snippet_options[@]}"
+        npx --yes --min-release-age=0 "@configdirector/cli@$CLI_VERSION" scan --upload "${snippet_options[@]}"

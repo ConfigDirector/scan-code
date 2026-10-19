@@ -60,6 +60,13 @@ jobs:
           working-directory: test/fixtures/known-key
           upload: false
 
+      - name: The action passes when the repository's .npmrc sets min-release-age
+        uses: ./
+        with:
+          token: ${{ secrets.CONFIGDIRECTOR_DEV_TOKEN }}
+          working-directory: test/fixtures/release-age-gate
+          upload: false
+
       - id: unknown-key
         name: The action runs validate on code that reads a key no config has
         continue-on-error: true
