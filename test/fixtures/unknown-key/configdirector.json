@@ -1,0 +1,6 @@
+{
+  "project": "scan-code-ci",
+  "include": ["**"],
+  "exclude": [],
+  "ignoreKeys": []
+}

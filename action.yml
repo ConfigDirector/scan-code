@@ -1,0 +1,90 @@
+name: ConfigDirector Code Scan
+description: Check the config keys your code reads against your ConfigDirector project and, on pushes to your default branch, upload where each config is read.
+author: ConfigDirector
+
+branding:
+  icon: toggle-right
+  color: blue
+
+inputs:
+  token:
+    description: "ConfigDirector API token, from a secret. It needs Projects: Read and Configs: Read, and Code references: Update when the action uploads."
+    required: true
+  version:
+    description: Version or npm dist-tag of @configdirector/cli to run, 0.9.0-beta.1 or later.
+    default: beta
+  working-directory:
+    description: Directory that holds configdirector.json. The scan reads the files under it.
+    default: "."
+  upload:
+    description: When to upload the scan. auto uploads on pushes to the default branch only, true on every run, false never.
+    default: auto
+  context-lines:
+    description: How many lines before and after each reference its uploaded snippet holds, from 0 to 5.
+    default: "2"
+  snippets:
+    description: Upload a snippet of code with each reference. false uploads no code.
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+        package-manager-cache: false
+
+    - id: upload-decision
+      name: Decide whether this run uploads the scan
+      shell: bash
+      env:
+        UPLOAD_INPUT: ${{ inputs.upload }}
+        SNIPPETS_INPUT: ${{ inputs.snippets }}
+        PUSH_TO_DEFAULT_BRANCH: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+      run: |
+        case "$UPLOAD_INPUT" in
+          auto) uploads="$PUSH_TO_DEFAULT_BRANCH" ;;
+          true) uploads=true ;;
+          false) uploads=false ;;
+          *)
+            echo "::error::upload takes auto, true or false, not $UPLOAD_INPUT."
+            exit 2
+            ;;
+        esac
+
+        case "$SNIPPETS_INPUT" in
+          true | false) ;;
+          *)
+            echo "::error::snippets takes true or false, not $SNIPPETS_INPUT."
+            exit 2
+            ;;
+        esac
+
+        echo "uploads=$uploads" >> "$GITHUB_OUTPUT"
+        echo "snippets=$SNIPPETS_INPUT" >> "$GITHUB_OUTPUT"
+
+    - id: validate
+      name: Check the config keys the code reads
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        CONFIGDIRECTOR_TOKEN: ${{ inputs.token }}
+        CLI_VERSION: ${{ inputs.version }}
+      run: npx --yes "@configdirector/cli@$CLI_VERSION" validate
+
+    - name: Upload the scan to ConfigDirector
+      if: steps.upload-decision.outputs.uploads == 'true' && (success() || steps.validate.outcome == 'failure')
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        CONFIGDIRECTOR_TOKEN: ${{ inputs.token }}
+        CLI_VERSION: ${{ inputs.version }}
+        SNIPPETS: ${{ steps.upload-decision.outputs.snippets }}
+        CONTEXT_LINES: ${{ inputs.context-lines }}
+      run: |
+        case "$SNIPPETS" in
+          true) snippet_options=(--context-lines "$CONTEXT_LINES") ;;
+          false) snippet_options=(--no-snippets) ;;
+        esac
+
+        npx --yes "@configdirector/cli@$CLI_VERSION" scan --upload "${snippet_options[@]}"

@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint the action and workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Lint the workflows, and the action's inputs where they use it
+        run: |
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
+          ./actionlint -color
+
+      - name: Lint the action's scripts
+        run: yq '.runs.steps[] | select(has("run")) | .run' action.yml | shellcheck --shell=bash -
+
+  dev-token:
+    name: Look for the dev API token
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      present: ${{ steps.token.outputs.present }}
+    steps:
+      - id: token
+        env:
+          CONFIGDIRECTOR_DEV_TOKEN: ${{ secrets.CONFIGDIRECTOR_DEV_TOKEN }}
+        run: |
+          if [ -n "$CONFIGDIRECTOR_DEV_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::There is no CONFIGDIRECTOR_DEV_TOKEN secret, so the action is not run against the dev API."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  action:
+    name: Run the action against the dev API
+    needs: dev-token
+    if: needs.dev-token.outputs.present == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CONFIGDIRECTOR_BASE_URL: https://api.configdirector-dev.com
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: The action passes when the code reads a config the project has
+        uses: ./
+        with:
+          token: ${{ secrets.CONFIGDIRECTOR_DEV_TOKEN }}
+          working-directory: test/fixtures/known-key
+          upload: false
+
+      - id: unknown-key
+        name: The action runs validate on code that reads a key no config has
+        continue-on-error: true
+        uses: ./
+        with:
+          token: ${{ secrets.CONFIGDIRECTOR_DEV_TOKEN }}
+          working-directory: test/fixtures/unknown-key
+          upload: false
+
+      - name: The unknown key failed the action
+        env:
+          OUTCOME: ${{ steps.unknown-key.outcome }}
+        run: test "$OUTCOME" = failure
