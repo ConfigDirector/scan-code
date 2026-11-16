@@ -7,7 +7,7 @@ The action runs the [ConfigDirector CLI](https://docs.configdirector.com/integra
 ## Usage
 
 1. Link the repository to a project with `configdirector init --project <project-slug>`, as the [CLI docs](https://docs.configdirector.com/integrations/cli#link-the-repository-to-a-project) describe, and commit the `configdirector.json` it writes.
-2. In the ConfigDirector dashboard, open **API tokens** and create a token used only by CI, with the [permissions](#token-permissions) below.
+2. In the ConfigDirector dashboard, open **API tokens** and create a token used only by CI, with the [permissions](#token-permissions) below. Under **Project access**, choose **Selected projects** and pick the project from step 1.
 3. Add the token as a secret named `CONFIGDIRECTOR_TOKEN` under the repository's **Settings → Secrets and variables → Actions**.
 4. Add this workflow:
 
