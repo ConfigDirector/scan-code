@@ -7,7 +7,7 @@ The action runs the [ConfigDirector CLI](https://docs.configdirector.com/integra
 ## Usage
 
 1. Link the repository to a project with `configdirector init --project <project-slug>`, as the [CLI docs](https://docs.configdirector.com/integrations/cli#link-the-repository-to-a-project) describe, and commit the `configdirector.json` it writes.
-2. In the ConfigDirector dashboard, open **API tokens** and create a token used only by CI, with the [permissions](#token-permissions) below. Under **Project access**, choose **Selected projects** and pick the project from step 1.
+2. In the ConfigDirector dashboard, open **API tokens**, click **Generate API token** and choose **Organization API token**, so the action keeps running when the member who generated the token changes role or leaves. Use the token only for CI, and give it the [permissions](#token-permissions) below. Under **Project access**, choose **Selected projects** and pick the project from step 1.
 3. Add the token as a secret named `CONFIGDIRECTOR_TOKEN` under the repository's **Settings → Secrets and variables → Actions**.
 4. Add this workflow:
 
@@ -48,7 +48,7 @@ When `validate` finds a problem on the default branch, the upload still runs, so
 | `validate`      | Projects: Read, Configs: Read                          |
 | `scan --upload` | Projects: Read, Configs: Read, Code references: Update |
 
-With `upload: false`, the token needs only Projects: Read and Configs: Read, and it cannot change anything. A token belongs to the member who created it and stops working when that member leaves the organization.
+With `upload: false`, the token needs only Projects: Read and Configs: Read, and it cannot change anything. If the workflow already uses a user API token, the member who generated it can convert it into an organization API token on the token's page, and the secret stays the same.
 
 ## Inputs
 
